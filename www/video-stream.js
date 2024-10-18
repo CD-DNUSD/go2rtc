@@ -1,30 +1,42 @@
-import {VideoRTC} from './video-rtc.js';
+import {
+	VideoRTC
+} from './video-rtc.js';
 
 /**
  * This is example, how you can extend VideoRTC player for your app.
  * Also you can check this example: https://github.com/AlexxIT/WebRTC
  */
 class VideoStream extends VideoRTC {
-    set divMode(value) {
-        this.querySelector('.mode').innerText = value;
-        this.querySelector('.status').innerText = '';
-    }
+	const isDevMode = false;
+	set divMode(value) {
+		if (isDevMode) { // Only set the mode if in dev mode
+			this.querySelector('.mode').innerText = value;
+			this.querySelector('.status').innerText = '';
+		} else {
+			// Optionally, you can clear the text or leave this empty
+			this.querySelector('.mode').innerText = '';
+			this.querySelector('.status').innerText = '';
+		}
+	}
 
-    set divError(value) {
-        const state = this.querySelector('.mode').innerText;
-        if (state !== 'loading') return;
-        this.querySelector('.mode').innerText = 'error';
-        this.querySelector('.status').innerText = value;
-    }
+	set divError(value) {
+		if (!isDevMode) return; // Don't do anything if not in dev mode
 
-    /**
-     * Custom GUI
-     */
-    oninit() {
-        console.debug('stream.oninit');
-        super.oninit();
+		const state = this.querySelector('.mode').innerText;
+		if (state !== 'loading') return;
 
-        this.innerHTML = `
+		this.querySelector('.mode').innerText = 'error';
+		this.querySelector('.status').innerText = value;
+	}
+
+	/**
+	 * Custom GUI
+	 */
+	oninit() {
+		console.debug('stream.oninit');
+		super.oninit();
+
+		this.innerHTML = `
         <style>
         video-stream {
             position: relative;
@@ -47,57 +59,57 @@ class VideoStream extends VideoRTC {
         </div>
         `;
 
-        const info = this.querySelector('.info');
-        this.insertBefore(this.video, info);
-    }
+		const info = this.querySelector('.info');
+		this.insertBefore(this.video, info);
+	}
 
-    onconnect() {
-        console.debug('stream.onconnect');
-        const result = super.onconnect();
-        if (result) this.divMode = 'loading';
-        return result;
-    }
+	onconnect() {
+		console.debug('stream.onconnect');
+		const result = super.onconnect();
+		if (result) this.divMode = 'loading';
+		return result;
+	}
 
-    ondisconnect() {
-        console.debug('stream.ondisconnect');
-        super.ondisconnect();
-    }
+	ondisconnect() {
+		console.debug('stream.ondisconnect');
+		super.ondisconnect();
+	}
 
-    onopen() {
-        console.debug('stream.onopen');
-        const result = super.onopen();
+	onopen() {
+		console.debug('stream.onopen');
+		const result = super.onopen();
 
-        this.onmessage['stream'] = msg => {
-            console.debug('stream.onmessge', msg);
-            switch (msg.type) {
-                case 'error':
-                    this.divError = msg.value;
-                    break;
-                case 'mse':
-                case 'hls':
-                case 'mp4':
-                case 'mjpeg':
-                    this.divMode = msg.type.toUpperCase();
-                    break;
-            }
-        };
+		this.onmessage['stream'] = msg => {
+			console.debug('stream.onmessge', msg);
+			switch (msg.type) {
+				case 'error':
+					this.divError = msg.value;
+					break;
+				case 'mse':
+				case 'hls':
+				case 'mp4':
+				case 'mjpeg':
+					this.divMode = msg.type.toUpperCase();
+					break;
+			}
+		};
 
-        return result;
-    }
+		return result;
+	}
 
-    onclose() {
-        console.debug('stream.onclose');
-        return super.onclose();
-    }
+	onclose() {
+		console.debug('stream.onclose');
+		return super.onclose();
+	}
 
-    onpcvideo(ev) {
-        console.debug('stream.onpcvideo');
-        super.onpcvideo(ev);
+	onpcvideo(ev) {
+		console.debug('stream.onpcvideo');
+		super.onpcvideo(ev);
 
-        if (this.pcState !== WebSocket.CLOSED) {
-            this.divMode = 'RTC';
-        }
-    }
+		if (this.pcState !== WebSocket.CLOSED) {
+			this.divMode = 'RTC';
+		}
+	}
 }
 
 customElements.define('video-stream', VideoStream);
