@@ -1,13 +1,13 @@
-import {
-	VideoRTC
-} from './video-rtc.js';
+import { VideoRTC } from './video-rtc.js';
+
+// Define isDevMode outside the class if it's a constant for the whole script
+const isDevMode = false;
 
 /**
- * This is example, how you can extend VideoRTC player for your app.
- * Also you can check this example: https://github.com/AlexxIT/WebRTC
+ * This is an example of how you can extend the VideoRTC player for your app.
+ * Also, you can check this example: https://github.com/AlexxIT/WebRTC
  */
 class VideoStream extends VideoRTC {
-	const isDevMode = false;
 	set divMode(value) {
 		if (isDevMode) { // Only set the mode if in dev mode
 			this.querySelector('.mode').innerText = value;
@@ -35,6 +35,9 @@ class VideoStream extends VideoRTC {
 	oninit() {
 		console.debug('stream.oninit');
 		super.oninit();
+
+		// Disable video controls
+		this.video.controls = false; // Ensure the controls are disabled
 
 		this.innerHTML = `
         <style>
@@ -80,7 +83,7 @@ class VideoStream extends VideoRTC {
 		const result = super.onopen();
 
 		this.onmessage['stream'] = msg => {
-			console.debug('stream.onmessge', msg);
+			console.debug('stream.onmessage', msg);
 			switch (msg.type) {
 				case 'error':
 					this.divError = msg.value;
