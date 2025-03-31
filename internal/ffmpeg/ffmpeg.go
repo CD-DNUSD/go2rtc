@@ -129,8 +129,9 @@ var defaults = map[string]string{
 	// hardware Rockchip
 	// important to use custom ffmpeg https://github.com/AlexxIT/go2rtc/issues/768
 	// hevc - doesn't have a profile setting
-	"h264/rkmpp": "-c:v h264_rkmpp_encoder -g 50 -bf 0 -profile:v high -level:v 4.1",
-	"h265/rkmpp": "-c:v hevc_rkmpp_encoder -g 50 -bf 0 -level:v 5.1",
+	"h264/rkmpp":  "-c:v h264_rkmpp -g 50 -bf 0 -profile:v high -level:v 4.1",
+	"h265/rkmpp":  "-c:v hevc_rkmpp -g 50 -bf 0 -profile:v main -level:v 5.1",
+	"mjpeg/rkmpp": "-c:v mjpeg_rkmpp",
 
 	// hardware NVidia on Linux and Windows
 	// preset=p2 - faster, tune=ll - low latency
@@ -179,6 +180,7 @@ func parseArgs(s string) *ffmpeg.Args {
 		Version: verAV,
 	}
 
+	var source = s
 	var query url.Values
 	if i := strings.IndexByte(s, '#'); i >= 0 {
 		query = streams.ParseQuery(s[i+1:])
@@ -220,6 +222,10 @@ func parseArgs(s string) *ffmpeg.Args {
 			s += "?audio"
 		default:
 			s += "?video&audio"
+		}
+		s += "&source=ffmpeg:" + url.QueryEscape(source)
+		for _, v := range query["query"] {
+			s += "&" + v
 		}
 		args.Input = inputTemplate("rtsp", s, query)
 	} else if i = strings.Index(s, "?"); i > 0 {
